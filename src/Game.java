@@ -1,62 +1,121 @@
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class Game {
     private int lives = 10;
     private char[] board;
-    private String wort = "Tex";
-    private int lastPos;
-    public void start(){
+    private String wort;
+    private final char[] tipps = new char[26];
+
+    public Game(){}
+    public Game(int lives) {
+        this.lives = lives;
+    }
+    public void start() {
+        this.wort = RandomWord.get();
         this.initBoard();
-        /*for (int i = 0; i <= lives; i++){ // (int i = 0; i <= lives; lives--;)
+        System.out.println("Das Wort hat " + wort.length() + " Buchstaben.");
+        int korrekt = 0;
+        while (lives >= 1) {
+            System.out.println("Du hast " + lives + " Versuche, um das gesuchte Wort zu erraten.");
             this.showBoard();
             Scanner s = new Scanner(System.in);
             char buchstabe = s.nextLine().toLowerCase().toCharArray()[0];
-            if (exists(buchstabe)){
-            } else {
-                System.out.println("Haha! Loser!");
-            }
-            }*/
-            int korrekt = 0;
-            while (lives >= 1){
-
-                this.showBoard();
-                Scanner s = new Scanner(System.in);
-                char buchstabe = s.nextLine().toLowerCase().toCharArray()[0];
-                if (exists(buchstabe)){
-                    System.out.println("Du hast richtig geraten!");
-                    showBoard(buchstabe);
-                    korrekt++;
-                    if (korrekt == this.wort.length()) {
-                        System.out.println("Du hast gewonnen!");
-                    }
+            if (validGuess(buchstabe)) {
+                if (exists(buchstabe)) {
+                    korrekt = rightGuess(buchstabe, korrekt);
                 } else {
-                    System.out.println("Haha! Loser!");
+                    System.out.println("Der gewählte Buchstabe ist leider nicht im Wort enthalten.");
+                    lives--;
                 }
-                lives--;
+            } else {
+                System.out.println("Du hast diesen Buchstaben bereits getippt.");
+                this.printGuesses();
             }
 
-
-
-
+        }
     }
 
-    private boolean exists(char buchstabe){
-        this.lastPos = this.wort.toLowerCase().indexOf(buchstabe);
-        return this.lastPos > -1;
+    private int rightGuess(char buchstabe, int korrekt) {
+        System.out.println("Du hast richtig geraten!");
+        int[] positions = this.getPositions(buchstabe);
+        showBoard(positions);
+        addToGuess(buchstabe);
+        printGuesses();
+        korrekt++;
+        if (korrekt == this.wort.length()) {
+            System.out.println("Du hast gewonnen!");
+            System.exit(0);
+        }
+        return korrekt;
+    }
+
+    private int[] getPositions(char buchstabe) {
+        int[] tempResult = new int[this.wort.length()];
+        int findings = 0;
+        for (int i = 0; i < wort.length(); i++) {
+            if (wort.toLowerCase().charAt(i) == buchstabe) {
+                tempResult[i] = i;
+                findings++;
+            } else {
+                tempResult[i] = -1;
+            }
+        }
+        int[] result = new int[findings];
+        int j = 0;
+        for (int i = 0; i < wort.length(); i++) {
+            if (tempResult[i] > -1) {
+                result[j] = tempResult[i];
+                j++;
+            }
+        }
+        return result;
+    }
+
+    private boolean validGuess(char buchstabe) {
+        for (char tipp : this.tipps) {
+            if (tipp == buchstabe) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void addToGuess(char buchstabe) {
+        for (int i = 0; i < this.tipps.length; i++) {
+            if (this.tipps[i] == 0) {
+                this.tipps[i] = buchstabe;
+                break;
+            }
+        }
+    }
+
+    private void printGuesses() {
+        System.out.print("Deine bisher geratenen Buchstaben sind: ");
+        for (char tipp : this.tipps) {
+            if (tipp > 0) {
+                System.out.print(tipp + " ");
+            }
+        }
+        System.out.println();
+    }
+
+    private boolean exists(char buchstabe) {
+        return this.wort.toLowerCase().indexOf(buchstabe) > -1;
     }
 
     private void initBoard() {
         board = new char[wort.length()];
-        for (int i = 0; i < board.length; i++) {
-            board[i] = '_';
-        }
+        Arrays.fill(board, '_');
     }
 
-    private void showBoard(){
+    private void showBoard() {
         System.out.println(board);
     }
 
-    private void showBoard(char buchstabe){
-        this.board[this.lastPos] = this.wort.charAt(this.lastPos);
+    private void showBoard(int[] positions) {
+        for (int position : positions) {
+            this.board[position] = this.wort.charAt(position);
+        }
     }
 }
